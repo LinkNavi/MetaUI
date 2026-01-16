@@ -6,11 +6,34 @@ project('metaui', ['c', 'cpp'],
 # Dependencies
 wayland_client = dependency('wayland-client')
 wayland_egl = dependency('wayland-egl')
+wayland_protocols = dependency('wayland-protocols')
 egl = dependency('egl')
 gl = dependency('gl')
 
-# Generate wayland protocol
+# Get wayland-protocols directory
+wayland_protocols_dir = wayland_protocols.get_variable(pkgconfig: 'pkgdatadir')
+
+# Generate wayland protocols
 wayland_scanner = find_program('wayland-scanner')
+
+# XDG Shell protocol (required by wlr-layer-shell)
+xdg_shell_xml = wayland_protocols_dir / 'stable/xdg-shell/xdg-shell.xml'
+
+xdg_shell_client_header = custom_target(
+  'xdg-shell-client-protocol.h',
+  input: xdg_shell_xml,
+  output: 'xdg-shell-client-protocol.h',
+  command: [wayland_scanner, 'client-header', '@INPUT@', '@OUTPUT@'],
+  install: true,
+  install_dir: get_option('includedir') / 'metaui'
+)
+
+xdg_shell_private_code = custom_target(
+  'xdg-shell-private-code.c',
+  input: xdg_shell_xml,
+  output: 'xdg-shell-protocol.c',
+  command: [wayland_scanner, 'private-code', '@INPUT@', '@OUTPUT@']
+)
 
 # Download wlr-layer-shell protocol if not present
 fs = import('fs')
@@ -44,12 +67,13 @@ wlr_layer_shell_private_code = custom_target(
 inc = include_directories('include')
 build_inc = include_directories('.')
 
-# Library sources (header-only, but we need the protocol)
+# Library sources (protocol implementations)
 metaui_sources = [
+  xdg_shell_private_code,
   wlr_layer_shell_private_code
 ]
 
-# Create a static library for the protocol
+# Create a static library for the protocols
 metaui_protocol_lib = static_library(
   'metaui-protocol',
   metaui_sources,
@@ -60,7 +84,7 @@ metaui_protocol_lib = static_library(
 metaui_protocol_dep = declare_dependency(
   link_with: metaui_protocol_lib,
   include_directories: [inc, build_inc],
-  sources: [wlr_layer_shell_client_header]
+  sources: [xdg_shell_client_header, wlr_layer_shell_client_header]
 )
 
 # Build examples if they exist
@@ -108,5 +132,5 @@ pkg.generate(
   description: 'Modern C++ GUI Framework for Wayland',
   version: meson.project_version(),
   subdirs: 'metaui',
-  requires: ['wayland-client', 'wayland-egl', 'egl', 'gl']
+  requires: ['wayland-client', 'wayland-egl', 'egl', 'gl', 'wayland-protocols']
 )
