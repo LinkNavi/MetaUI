@@ -371,5 +371,133 @@ public:
 private:
     Direction direction_;
 };
+// ============================================================================
+// Widget Implementations
+// ============================================================================
 
+inline Size Text::measureContent(Size available) {
+    // Simple estimation - would use font metrics in production
+    return Size(text_.length() * textStyle_.fontSize * 0.6f, textStyle_.fontSize * 1.4f);
+}
+
+inline void Text::render(Renderer& renderer) {
+    Widget::render(renderer);
+    
+    // Get default font - in production, would cache this
+    auto font = renderer.loadFont("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 
+                                   textStyle_.fontSize);
+    if (font) {
+        renderer.drawText(text_, contentBounds_.topLeft(), font, textStyle_.color, textStyle_);
+    }
+}
+
+inline void Image::render(Renderer& renderer) {
+    Widget::render(renderer);
+    // TODO: Load and render image texture
+}
+
+inline Size Button::measureContent(Size available) {
+    // Simple estimation
+    return Size(label_.length() * textStyle_.fontSize * 0.6f + 40, 
+                textStyle_.fontSize * 1.4f + 20);
+}
+
+inline void Button::render(Renderer& renderer) {
+    // Change background based on state
+    Color bg = style_.background;
+    if (pressed_) {
+        bg = activeBg_;
+    } else if (hovered_) {
+        bg = hoverBg_;
+    }
+    
+    BoxStyle tempStyle = style_;
+    tempStyle.background = bg;
+    style_ = tempStyle;
+    
+    Widget::render(renderer);
+    
+    // Render text
+    auto font = renderer.loadFont("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                                   textStyle_.fontSize);
+    if (font) {
+        Size textSize = font->measureText(label_);
+        Point textPos(
+            contentBounds_.x + (contentBounds_.width - textSize.width) / 2,
+            contentBounds_.y + (contentBounds_.height - textSize.height) / 2
+        );
+        renderer.drawText(label_, textPos, font, textStyle_.color, textStyle_);
+    }
+}
+
+inline void TextInput::render(Renderer& renderer) {
+    Widget::render(renderer);
+    
+    auto font = renderer.loadFont("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                                   textStyle_.fontSize);
+    if (!font) return;
+    
+    std::string displayText = text_.empty() ? placeholder_ : text_;
+    Color displayColor = text_.empty() ? 
+        textStyle_.color.withAlpha(0.5f) : textStyle_.color;
+    
+    renderer.drawText(displayText, contentBounds_.topLeft(), font, 
+                     displayColor, textStyle_);
+    
+    // Draw cursor if focused
+    if (focused_) {
+        Size textSize = font->measureText(text_.substr(0, cursorPos_));
+        Rect cursor(
+            contentBounds_.x + textSize.width,
+            contentBounds_.y,
+            2,
+            contentBounds_.height
+        );
+        renderer.drawRect(cursor, textStyle_.color);
+    }
+}
+
+inline void Slider::render(Renderer& renderer) {
+    Widget::render(renderer);
+    
+    // Draw fill
+    float fillWidth = (value_ - min_) / (max_ - min_) * contentBounds_.width;
+    Rect fillRect(contentBounds_.x, contentBounds_.y, fillWidth, contentBounds_.height);
+    renderer.drawRoundedRect(fillRect, style_.borderRadius, fillColor_);
+    
+    // Draw thumb
+    float thumbX = contentBounds_.x + fillWidth - 10;
+    float thumbY = contentBounds_.y + contentBounds_.height / 2;
+    Rect thumbRect(thumbX, thumbY - 15, 20, 30);
+    renderer.drawRoundedRect(thumbRect, BorderRadius(10), thumbColor_);
+}
+
+inline void Checkbox::render(Renderer& renderer) {
+    Widget::render(renderer);
+    
+    if (checked_) {
+        // Draw checkmark
+        float cx = contentBounds_.x + contentBounds_.width / 2;
+        float cy = contentBounds_.y + contentBounds_.height / 2;
+        
+        // Simple checkmark (in production, would draw proper paths)
+        renderer.drawRect(
+            Rect(cx - 6, cy - 2, 12, 4),
+            Color(1, 1, 1, 1)
+        );
+        renderer.drawRect(
+            Rect(cx - 2, cy - 6, 4, 12),
+            Color(1, 1, 1, 1)
+        );
+    }
+}
+
+inline void ProgressBar::render(Renderer& renderer) {
+    Widget::render(renderer);
+    
+    // Draw filled portion
+    float fillWidth = progress_ * contentBounds_.width;
+    Rect fillRect(contentBounds_.x, contentBounds_.y, fillWidth, contentBounds_.height);
+    renderer.drawRoundedRect(fillRect, style_.borderRadius, fillColor_);
+}
 } // namespace MetaUI

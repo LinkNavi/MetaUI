@@ -7,7 +7,7 @@
 #include <wayland-egl.h>
 #include <EGL/egl.h>
 #include <chrono>
-
+#include <linux/input-event-codes.h>  // For BTN_LEFT, etc.
 // Include wlr-layer-shell protocol (for shell apps)
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
