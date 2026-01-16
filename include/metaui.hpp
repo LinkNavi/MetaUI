@@ -46,22 +46,11 @@
  * License: MIT
  */
 
-// Core types and utilities
 #include "metaui/core.hpp"
-
-// Widget base classes
 #include "metaui/widget.hpp"
-
-// Layout containers
 #include "metaui/layouts.hpp"
-
-// Widget library
+#include "metaui/renderer.hpp"  // MUST come before widgets.hpp
 #include "metaui/widgets.hpp"
-
-// Renderer
-#include "metaui/renderer.hpp"
-
-// Application framework
 #include "metaui/application.hpp"
 
 // Convenience namespace

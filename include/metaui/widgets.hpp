@@ -123,7 +123,8 @@ public:
         : placeholder_(placeholder) {
         style_.padding = Padding(8, 12, 8, 12);
         style_.background = Color(0.1f, 0.1f, 0.1f, 1.0f);
-        style_.border(Color(0.3f, 0.3f, 0.3f, 1.0f), 1);
+      style_.borderColor = Color(0.3f, 0.3f, 0.3f, 1.0f);
+style_.borderWidth = 1;
         style_.borderRadius = BorderRadius(4);
         
         textStyle_.fontSize = 14;
@@ -267,7 +268,8 @@ class Checkbox : public Widget {
 public:
     explicit Checkbox(bool checked = false) : checked_(checked) {
         style_.background = Color(0.2f, 0.2f, 0.2f, 1.0f);
-        style_.border(Color(0.4f, 0.4f, 0.4f, 1.0f), 1);
+        style_.borderColor = Color(0.4f, 0.4f, 0.4f, 1.0f);
+style_.borderWidth = 1;
         style_.borderRadius = BorderRadius(3);
     }
     

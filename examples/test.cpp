@@ -21,9 +21,9 @@ int main() {
         
         // Create root vertical layout
         auto root = std::make_shared<Box>(Direction::Vertical);
-        root->padding(30)
-             .spacing(15)
-             .background(theme.background);
+   root->padding(30);
+root->spacing(15);
+root->background(theme.background);
         
         // Title
         auto title = std::make_shared<Text>("Welcome to MetaUI!");
