@@ -324,7 +324,7 @@ private:
 
 // Specialization for Color
 template<>
-Color Animation<Color>::lerp(const Color& a, const Color& b, float t) const {
+inline Color Animation<Color>::lerp(const Color& a, const Color& b, float t) const {
     return Color(
         a.r + (b.r - a.r) * t,
         a.g + (b.g - a.g) * t,

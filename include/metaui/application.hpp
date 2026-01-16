@@ -9,7 +9,11 @@
 #include <chrono>
 #include <linux/input-event-codes.h>  // For BTN_LEFT, etc.
 // Include wlr-layer-shell protocol (for shell apps)
+#define namespace namespace_workaround
+extern "C" {
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
+}
+#undef namespace
 
 namespace MetaUI {
 
