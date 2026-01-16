@@ -1,6 +1,6 @@
-project('metaui', 'cpp',
+project('metaui', ['c', 'cpp'],
   version: '0.1.0',
-  default_options: ['cpp_std=c++17', 'warning_level=2']
+  default_options: ['cpp_std=c++17', 'c_std=c11', 'warning_level=2']
 )
 
 # Dependencies
@@ -13,7 +13,8 @@ gl = dependency('gl')
 wayland_scanner = find_program('wayland-scanner')
 
 # Download wlr-layer-shell protocol if not present
-if not run_command('test', '-f', 'protocols/wlr-layer-shell-unstable-v1.xml', check: false).returncode() == 0
+fs = import('fs')
+if not fs.exists('protocols/wlr-layer-shell-unstable-v1.xml')
   run_command('mkdir', '-p', 'protocols', check: false)
   run_command('wget', 
     'https://gitlab.freedesktop.org/wlroots/wlr-protocols/-/raw/master/unstable/wlr-layer-shell-unstable-v1.xml',
@@ -27,7 +28,9 @@ wlr_layer_shell_client_header = custom_target(
   'wlr-layer-shell-client-protocol.h',
   input: wlr_layer_shell_xml,
   output: 'wlr-layer-shell-unstable-v1-client-protocol.h',
-  command: [wayland_scanner, 'client-header', '@INPUT@', '@OUTPUT@']
+  command: [wayland_scanner, 'client-header', '@INPUT@', '@OUTPUT@'],
+  install: true,
+  install_dir: get_option('includedir') / 'metaui'
 )
 
 wlr_layer_shell_private_code = custom_target(
@@ -39,6 +42,7 @@ wlr_layer_shell_private_code = custom_target(
 
 # Include directories
 inc = include_directories('include')
+build_inc = include_directories('.')
 
 # Library sources (header-only, but we need the protocol)
 metaui_sources = [
@@ -50,32 +54,51 @@ metaui_protocol_lib = static_library(
   'metaui-protocol',
   metaui_sources,
   dependencies: [wayland_client],
-  include_directories: inc
+  include_directories: [inc, build_inc]
 )
 
 metaui_protocol_dep = declare_dependency(
   link_with: metaui_protocol_lib,
-  include_directories: inc,
+  include_directories: [inc, build_inc],
   sources: [wlr_layer_shell_client_header]
 )
 
-# Test executable
-test_exe = executable(
-  'metaui-test',
-  'test.cpp',
-  dependencies: [
-    wayland_client,
-    wayland_egl,
-    egl,
-    gl,
-    metaui_protocol_dep
-  ],
-  include_directories: inc,
-  install: true
-)
+# Build examples if they exist
+if fs.exists('examples/test.cpp')
+  test_exe = executable(
+    'metaui-test',
+    'examples/test.cpp',
+    dependencies: [
+      wayland_client,
+      wayland_egl,
+      egl,
+      gl,
+      metaui_protocol_dep
+    ],
+    include_directories: [inc, build_inc],
+    install: true
+  )
+endif
+
+# Build main.cpp if it exists in root
+if fs.exists('main.cpp')
+  main_exe = executable(
+    'metaui-app',
+    'main.cpp',
+    dependencies: [
+      wayland_client,
+      wayland_egl,
+      egl,
+      gl,
+      metaui_protocol_dep
+    ],
+    include_directories: [inc, build_inc],
+    install: false
+  )
+endif
 
 # Install headers
-install_subdir('include/metaui', install_dir: 'include')
+install_subdir('include/metaui', install_dir: get_option('includedir'))
 install_headers('include/metaui.hpp')
 
 # pkg-config file
