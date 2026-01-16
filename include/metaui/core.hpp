@@ -316,13 +316,14 @@ private:
     float elapsed_;
     bool running_;
     
-    template<typename U>
-    U lerp(const U& a, const U& b, float t) const {
+
+    T lerp(const T& a, const T& b, float t) const {
         return a + (b - a) * t;
     }
 };
 
 // Specialization for Color
+template<>
 inline Color Animation<Color>::lerp(const Color& a, const Color& b, float t) const {
     return Color(
         a.r + (b.r - a.r) * t,
