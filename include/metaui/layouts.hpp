@@ -23,13 +23,10 @@ public:
         
         Size result(0, 0);
         Size childAvailable = available;
-        
-        // Account for spacing
         float totalSpacing = spacing_ * (children_.size() - 1);
         
         if (direction_ == Direction::Horizontal) {
             childAvailable.width -= totalSpacing;
-            
             for (auto& child : children_) {
                 Size childSize = child->measure(childAvailable);
                 result.width += childSize.width;
@@ -38,7 +35,6 @@ public:
             result.width += totalSpacing;
         } else {
             childAvailable.height -= totalSpacing;
-            
             for (auto& child : children_) {
                 Size childSize = child->measure(childAvailable);
                 result.height += childSize.height;
@@ -46,14 +42,12 @@ public:
             }
             result.height += totalSpacing;
         }
-        
         return result;
     }
     
     void layoutChildren() override {
         if (children_.empty()) return;
         
-        // First, measure all children
         std::vector<Size> childSizes;
         for (auto& child : children_) {
             childSizes.push_back(child->measure(Size(contentBounds_.width, contentBounds_.height)));
@@ -76,32 +70,20 @@ private:
     
     void layoutHorizontal(const std::vector<Size>& sizes, float totalSpacing) {
         float totalWidth = 0;
-        for (const auto& size : sizes) {
-            totalWidth += size.width;
-        }
+        for (const auto& size : sizes) totalWidth += size.width;
         totalWidth += totalSpacing;
         
         float x = contentBounds_.x;
-        
-        // Apply main axis alignment
-        if (alignment_ == Alignment::Center) {
-            x += (contentBounds_.width - totalWidth) / 2;
-        } else if (alignment_ == Alignment::End) {
-            x += contentBounds_.width - totalWidth;
-        }
+        if (alignment_ == Alignment::Center) x += (contentBounds_.width - totalWidth) / 2;
+        else if (alignment_ == Alignment::End) x += contentBounds_.width - totalWidth;
         
         for (size_t i = 0; i < children_.size(); ++i) {
             float y = contentBounds_.y;
             float height = sizes[i].height;
             
-            // Apply cross axis alignment
-            if (crossAlignment_ == Alignment::Center) {
-                y += (contentBounds_.height - height) / 2;
-            } else if (crossAlignment_ == Alignment::End) {
-                y += contentBounds_.height - height;
-            } else if (crossAlignment_ == Alignment::Stretch) {
-                height = contentBounds_.height;
-            }
+            if (crossAlignment_ == Alignment::Center) y += (contentBounds_.height - height) / 2;
+            else if (crossAlignment_ == Alignment::End) y += contentBounds_.height - height;
+            else if (crossAlignment_ == Alignment::Stretch) height = contentBounds_.height;
             
             children_[i]->layout(Rect(x, y, sizes[i].width, height));
             x += sizes[i].width + spacing_;
@@ -110,32 +92,20 @@ private:
     
     void layoutVertical(const std::vector<Size>& sizes, float totalSpacing) {
         float totalHeight = 0;
-        for (const auto& size : sizes) {
-            totalHeight += size.height;
-        }
+        for (const auto& size : sizes) totalHeight += size.height;
         totalHeight += totalSpacing;
         
         float y = contentBounds_.y;
-        
-        // Apply main axis alignment
-        if (alignment_ == Alignment::Center) {
-            y += (contentBounds_.height - totalHeight) / 2;
-        } else if (alignment_ == Alignment::End) {
-            y += contentBounds_.height - totalHeight;
-        }
+        if (alignment_ == Alignment::Center) y += (contentBounds_.height - totalHeight) / 2;
+        else if (alignment_ == Alignment::End) y += contentBounds_.height - totalHeight;
         
         for (size_t i = 0; i < children_.size(); ++i) {
             float x = contentBounds_.x;
             float width = sizes[i].width;
             
-            // Apply cross axis alignment
-            if (crossAlignment_ == Alignment::Center) {
-                x += (contentBounds_.width - width) / 2;
-            } else if (crossAlignment_ == Alignment::End) {
-                x += contentBounds_.width - width;
-            } else if (crossAlignment_ == Alignment::Stretch) {
-                width = contentBounds_.width;
-            }
+            if (crossAlignment_ == Alignment::Center) x += (contentBounds_.width - width) / 2;
+            else if (crossAlignment_ == Alignment::End) x += contentBounds_.width - width;
+            else if (crossAlignment_ == Alignment::Stretch) width = contentBounds_.width;
             
             children_[i]->layout(Rect(x, y, width, sizes[i].height));
             y += sizes[i].height + spacing_;
@@ -144,7 +114,7 @@ private:
 };
 
 // ============================================================================
-// Stack Layout (Overlapping widgets)
+// Stack Layout
 // ============================================================================
 
 class Stack : public Container {
@@ -157,13 +127,11 @@ public:
     
     Size measureContent(Size available) override {
         Size result(0, 0);
-        
         for (auto& child : children_) {
             Size childSize = child->measure(available);
             result.width = std::max(result.width, childSize.width);
             result.height = std::max(result.height, childSize.height);
         }
-        
         return result;
     }
     
@@ -174,19 +142,11 @@ public:
             float x = contentBounds_.x;
             float y = contentBounds_.y;
             
-            // Horizontal alignment
-            if (horizontalAlign_ == Alignment::Center) {
-                x += (contentBounds_.width - childSize.width) / 2;
-            } else if (horizontalAlign_ == Alignment::End) {
-                x += contentBounds_.width - childSize.width;
-            }
+            if (horizontalAlign_ == Alignment::Center) x += (contentBounds_.width - childSize.width) / 2;
+            else if (horizontalAlign_ == Alignment::End) x += contentBounds_.width - childSize.width;
             
-            // Vertical alignment
-            if (verticalAlign_ == Alignment::Center) {
-                y += (contentBounds_.height - childSize.height) / 2;
-            } else if (verticalAlign_ == Alignment::End) {
-                y += contentBounds_.height - childSize.height;
-            }
+            if (verticalAlign_ == Alignment::Center) y += (contentBounds_.height - childSize.height) / 2;
+            else if (verticalAlign_ == Alignment::End) y += contentBounds_.height - childSize.height;
             
             child->layout(Rect(x, y, childSize.width, childSize.height));
         }
@@ -211,7 +171,6 @@ public:
         if (children_.empty() || columns_ <= 0) return Size(0, 0);
         
         int rows = (children_.size() + columns_ - 1) / columns_;
-        
         float cellWidth = cellSize_.width > 0 ? cellSize_.width : 
             (available.width - spacing_ * (columns_ - 1)) / columns_;
         float cellHeight = cellSize_.height > 0 ? cellSize_.height : cellWidth;
@@ -230,29 +189,24 @@ public:
         float cellHeight = cellSize_.height > 0 ? cellSize_.height : cellWidth;
         
         int row = 0, col = 0;
-        
         for (auto& child : children_) {
             float x = contentBounds_.x + col * (cellWidth + spacing_);
             float y = contentBounds_.y + row * (cellHeight + spacing_);
             
             child->layout(Rect(x, y, cellWidth, cellHeight));
             
-            col++;
-            if (col >= columns_) {
-                col = 0;
-                row++;
-            }
+            if (++col >= columns_) { col = 0; row++; }
         }
     }
     
 private:
     int columns_ = 1;
     float spacing_ = 0;
-    Size cellSize_{0, 0};  // 0 means auto
+    Size cellSize_{0, 0};
 };
 
 // ============================================================================
-// Scroll Container
+// ScrollView
 // ============================================================================
 
 class ScrollView : public Container {
@@ -261,21 +215,18 @@ public:
     
     Size measureContent(Size available) override {
         if (children_.empty()) return Size(0, 0);
-        
-        // Only first child is scrolled
         if (scrollDir_ == Direction::Horizontal) {
-            return Size(children_[0]->measure(Size(INFINITY, available.height)).width, available.height);
-        } else {
-            return Size(available.width, children_[0]->measure(Size(available.width, INFINITY)).height);
+            return Size(children_[0]->measure(Size(1e9f, available.height)).width, available.height);
         }
+        return Size(available.width, children_[0]->measure(Size(available.width, 1e9f)).height);
     }
     
     void layoutChildren() override {
         if (children_.empty()) return;
         
         Size childSize = children_[0]->measure(Size(
-            scrollDir_ == Direction::Horizontal ? INFINITY : contentBounds_.width,
-            scrollDir_ == Direction::Vertical ? INFINITY : contentBounds_.height
+            scrollDir_ == Direction::Horizontal ? 1e9f : contentBounds_.width,
+            scrollDir_ == Direction::Vertical ? 1e9f : contentBounds_.height
         ));
         
         children_[0]->layout(Rect(
@@ -296,7 +247,6 @@ public:
             scrollOffset_.y -= event.deltaY * 20;
             scrollOffset_.y = std::max(0.0f, scrollOffset_.y);
         }
-        
         layoutChildren();
         return true;
     }
@@ -307,7 +257,7 @@ private:
 };
 
 // ============================================================================
-// Sidebar Layout (Common for shell apps)
+// Sidebar Layout
 // ============================================================================
 
 class Sidebar : public Container {
@@ -320,7 +270,6 @@ public:
     Sidebar& position(Position pos) { position_ = pos; return *this; }
     Sidebar& sidebarSize(float size) { sidebarSize_ = size; return *this; }
     
-    // First child is sidebar, second is main content
     void layoutChildren() override {
         if (children_.size() < 2) return;
         
@@ -329,31 +278,25 @@ public:
         
         switch (position_) {
             case Position::Left:
-                sidebar->layout(Rect(contentBounds_.x, contentBounds_.y, 
-                    sidebarSize_, contentBounds_.height));
+                sidebar->layout(Rect(contentBounds_.x, contentBounds_.y, sidebarSize_, contentBounds_.height));
                 content->layout(Rect(contentBounds_.x + sidebarSize_, contentBounds_.y,
                     contentBounds_.width - sidebarSize_, contentBounds_.height));
                 break;
-                
             case Position::Right:
                 content->layout(Rect(contentBounds_.x, contentBounds_.y,
                     contentBounds_.width - sidebarSize_, contentBounds_.height));
                 sidebar->layout(Rect(contentBounds_.x + contentBounds_.width - sidebarSize_, 
                     contentBounds_.y, sidebarSize_, contentBounds_.height));
                 break;
-                
             case Position::Top:
-                sidebar->layout(Rect(contentBounds_.x, contentBounds_.y,
-                    contentBounds_.width, sidebarSize_));
+                sidebar->layout(Rect(contentBounds_.x, contentBounds_.y, contentBounds_.width, sidebarSize_));
                 content->layout(Rect(contentBounds_.x, contentBounds_.y + sidebarSize_,
                     contentBounds_.width, contentBounds_.height - sidebarSize_));
                 break;
-                
             case Position::Bottom:
                 content->layout(Rect(contentBounds_.x, contentBounds_.y,
                     contentBounds_.width, contentBounds_.height - sidebarSize_));
-                sidebar->layout(Rect(contentBounds_.x, 
-                    contentBounds_.y + contentBounds_.height - sidebarSize_,
+                sidebar->layout(Rect(contentBounds_.x, contentBounds_.y + contentBounds_.height - sidebarSize_,
                     contentBounds_.width, sidebarSize_));
                 break;
         }

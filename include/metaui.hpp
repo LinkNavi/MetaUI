@@ -3,64 +3,53 @@
 /*
  * MetaUI - Modern C++ GUI Framework for Wayland
  * 
- * A header-only, easy-to-use GUI framework optimized for shell applications
- * on wlroots-based compositors like StarView.
- * 
  * Features:
  * - Header-only, modular design
  * - OpenGL-accelerated rendering
+ * - Proper UTF-8 text rendering with stb_truetype
+ * - Image loading (BMP, PNG*, JPEG*) with stb_image
  * - Flexible layout system (Box, Stack, Grid, Sidebar)
- * - Rich widget library (Text, Button, Slider, TextInput, etc.)
+ * - Rich widget library (Text, Image, Button, Slider, etc.)
  * - Easy styling with gradients, shadows, rounded corners
  * - Animation support with multiple easing curves
  * - Native Wayland integration with wlr-layer-shell
  * 
- * Dependencies:
- * - OpenGL, EGL
- * - Wayland client libraries
- * - wlr-layer-shell protocol
- * - stb_truetype.h (included)
- * 
  * Usage:
- * 
  *   #include <metaui.hpp>
  *   using namespace MetaUI;
  *   
  *   int main() {
  *       Application app("My App", 400, 600);
  *       
- *       auto root = Box(Direction::Vertical)
- *           .spacing(10)
- *           .padding(20);
+ *       auto root = std::make_shared<Box>(Direction::Vertical);
+ *       root->spacing(10).padding(20);
  *       
- *       root.addChild(
- *           Text("Hello, MetaUI!")
- *               .fontSize(24)
- *               .color(Color::fromHex(0xffffffff))
- *       );
+ *       auto title = std::make_shared<Text>("Hello!");
+ *       title->fontSize(24).color(Colors::white());
+ *       root->addChild(title);
  *       
- *       app.setRoot(std::make_shared<decltype(root)>(root));
+ *       auto img = std::make_shared<Image>("/path/to/image.bmp");
+ *       img->width(SizeSpec::fixed(200)).height(SizeSpec::fixed(150));
+ *       root->addChild(img);
+ *       
+ *       app.setRoot(root);
  *       app.run();
  *   }
- * 
- * License: MIT
  */
 
 #include "metaui/core.hpp"
 #include "metaui/widget.hpp"
 #include "metaui/layouts.hpp"
-#include "metaui/renderer.hpp"  // MUST come before widgets.hpp
+#include "metaui/renderer.hpp"
 #include "metaui/widgets.hpp"
 #include "metaui/application.hpp"
 
-// Convenience namespace
 namespace MetaUI {
 
 // ============================================================================
 // Builder Helpers
 // ============================================================================
 
-// Helper to create shared_ptr from widget
 template<typename T, typename... Args>
 std::shared_ptr<T> make(Args&&... args) {
     return std::make_shared<T>(std::forward<Args>(args)...);
@@ -71,12 +60,10 @@ std::shared_ptr<T> make(Args&&... args) {
 // ============================================================================
 
 namespace Colors {
-    // Basic colors
     inline Color black() { return Color(0, 0, 0, 1); }
     inline Color white() { return Color(1, 1, 1, 1); }
     inline Color transparent() { return Color(0, 0, 0, 0); }
     
-    // Grays
     inline Color gray(float v) { return Color(v, v, v, 1); }
     inline Color gray50() { return Color(0.98f, 0.98f, 0.98f, 1); }
     inline Color gray100() { return Color(0.96f, 0.96f, 0.97f, 1); }
@@ -89,7 +76,7 @@ namespace Colors {
     inline Color gray800() { return Color(0.18f, 0.22f, 0.28f, 1); }
     inline Color gray900() { return Color(0.11f, 0.13f, 0.18f, 1); }
     
-    // Catppuccin Mocha (matches StarView config)
+    // Catppuccin Mocha
     inline Color ctp_rosewater() { return Color::fromHex(0xf5e0dcff); }
     inline Color ctp_flamingo() { return Color::fromHex(0xf2cdcdff); }
     inline Color ctp_pink() { return Color::fromHex(0xf5c2e7ff); }
@@ -166,6 +153,3 @@ struct Theme {
 };
 
 } // namespace MetaUI
-
-
-

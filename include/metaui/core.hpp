@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <cmath>
 #include <cstdint>
+#include <algorithm>
 
 namespace MetaUI {
 
@@ -36,6 +37,15 @@ struct Color {
     Color withAlpha(float alpha) const {
         return Color(r, g, b, alpha);
     }
+    
+    Color blend(const Color& other, float t) const {
+        return Color(
+            r + (other.r - r) * t,
+            g + (other.g - g) * t,
+            b + (other.b - b) * t,
+            a + (other.a - a) * t
+        );
+    }
 };
 
 struct Point {
@@ -48,6 +58,14 @@ struct Point {
     
     Point operator-(const Point& other) const {
         return Point(x - other.x, y - other.y);
+    }
+    
+    Point operator*(float s) const {
+        return Point(x * s, y * s);
+    }
+    
+    float length() const {
+        return std::sqrt(x * x + y * y);
     }
 };
 
@@ -79,6 +97,11 @@ struct Rect {
     Point bottomLeft() const { return Point(x, y + height); }
     Point bottomRight() const { return Point(x + width, y + height); }
     Point center() const { return Point(x + width/2, y + height/2); }
+    
+    Rect inset(float amount) const {
+        return Rect(x + amount, y + amount, 
+                   width - 2*amount, height - 2*amount);
+    }
 };
 
 struct Padding {
@@ -108,15 +131,15 @@ struct BorderRadius {
 // ============================================================================
 
 enum class SizeConstraint {
-    Fixed,      // Fixed size
-    Fill,       // Fill available space
-    Content,    // Size based on content
-    Percent,    // Percentage of parent
+    Fixed,
+    Fill,
+    Content,
+    Percent,
 };
 
 struct SizeSpec {
     SizeConstraint constraint = SizeConstraint::Content;
-    float value = 0;  // Used for Fixed and Percent
+    float value = 0;
     
     static SizeSpec fixed(float v) { 
         SizeSpec s; s.constraint = SizeConstraint::Fixed; s.value = v; return s;
@@ -166,7 +189,7 @@ enum class KeyMod {
 
 struct MouseEvent {
     Point position;
-    Point delta;  // For motion
+    Point delta;
     MouseButton button;
     bool pressed;
     uint32_t mods;
@@ -177,7 +200,7 @@ struct KeyEvent {
     uint32_t keycode;
     uint32_t keysym;
     uint32_t mods;
-    std::string text;  // For text input
+    std::string text;
 };
 
 struct ScrollEvent {
@@ -191,7 +214,7 @@ struct ScrollEvent {
 // ============================================================================
 
 struct TextStyle {
-    std::string fontFamily = "sans-serif";
+    std::string fontFamily = "";
     float fontSize = 14.0f;
     Color color = Color(1, 1, 1, 1);
     bool bold = false;
@@ -199,7 +222,7 @@ struct TextStyle {
     float lineHeight = 1.4f;
     
     enum class Align { Left, Center, Right } align = Align::Left;
-    enum class VAlign { Top, Middle, Bottom } valign = VAlign::Middle;
+    enum class VAlign { Top, Middle, Bottom } valign = VAlign::Top;
 };
 
 struct BoxStyle {
@@ -210,17 +233,15 @@ struct BoxStyle {
     Padding padding;
     Padding margin;
     
-    // Shadow
     bool hasShadow = false;
     Color shadowColor = Color(0, 0, 0, 0.3f);
     Point shadowOffset = Point(0, 2);
     float shadowBlur = 4.0f;
     
-    // Gradient
     bool hasGradient = false;
     Color gradientStart;
     Color gradientEnd;
-    float gradientAngle = 0.0f;  // in degrees
+    float gradientAngle = 0.0f;
 };
 
 // ============================================================================
@@ -236,41 +257,28 @@ enum class EasingCurve {
     Elastic
 };
 
-float easeValue(float t, EasingCurve curve) {
+inline float easeValue(float t, EasingCurve curve) {
     if (t <= 0.0f) return 0.0f;
     if (t >= 1.0f) return 1.0f;
     
     switch (curve) {
         case EasingCurve::Linear:
             return t;
-        
         case EasingCurve::EaseIn:
             return t * t;
-        
         case EasingCurve::EaseOut:
             return 1.0f - (1.0f - t) * (1.0f - t);
-        
         case EasingCurve::EaseInOut:
             if (t < 0.5f) return 2.0f * t * t;
             return 1.0f - std::pow(-2.0f * t + 2.0f, 2) / 2.0f;
-        
         case EasingCurve::Bounce: {
             float n1 = 7.5625f;
             float d1 = 2.75f;
-            if (t < 1.0f / d1) {
-                return n1 * t * t;
-            } else if (t < 2.0f / d1) {
-                t -= 1.5f / d1;
-                return n1 * t * t + 0.75f;
-            } else if (t < 2.5f / d1) {
-                t -= 2.25f / d1;
-                return n1 * t * t + 0.9375f;
-            } else {
-                t -= 2.625f / d1;
-                return n1 * t * t + 0.984375f;
-            }
+            if (t < 1.0f / d1) return n1 * t * t;
+            if (t < 2.0f / d1) { t -= 1.5f / d1; return n1 * t * t + 0.75f; }
+            if (t < 2.5f / d1) { t -= 2.25f / d1; return n1 * t * t + 0.9375f; }
+            t -= 2.625f / d1; return n1 * t * t + 0.984375f;
         }
-        
         case EasingCurve::Elastic: {
             float c4 = (2.0f * 3.14159f) / 3.0f;
             return std::pow(2.0f, -10.0f * t) * std::sin((t * 10.0f - 0.75f) * c4) + 1.0f;
@@ -292,12 +300,11 @@ public:
     
     bool update(float dt) {
         if (!running_) return false;
-        
         elapsed_ += dt;
         if (elapsed_ >= duration_) {
             elapsed_ = duration_;
             running_ = false;
-            return true;  // Animation complete
+            return true;
         }
         return false;
     }
@@ -322,15 +329,9 @@ private:
     }
 };
 
-// Specialization for Color
 template<>
 inline Color Animation<Color>::lerp(const Color& a, const Color& b, float t) const {
-    return Color(
-        a.r + (b.r - a.r) * t,
-        a.g + (b.g - a.g) * t,
-        a.b + (b.b - a.b) * t,
-        a.a + (b.a - a.a) * t
-    );
+    return a.blend(b, t);
 }
 
 } // namespace MetaUI

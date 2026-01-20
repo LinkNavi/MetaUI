@@ -7,7 +7,6 @@
 
 namespace MetaUI {
 
-// Forward declarations
 class Renderer;
 class Widget;
 
@@ -95,14 +94,11 @@ public:
     Size measure(Size available) {
         if (!visible_) return Size(0, 0);
         
-        // Apply margin
         available.width -= style_.margin.horizontal();
         available.height -= style_.margin.vertical();
         
-        // Calculate size based on constraints
         Size result;
         
-        // Width
         switch (widthSpec_.constraint) {
             case SizeConstraint::Fixed:
                 result.width = widthSpec_.value;
@@ -118,7 +114,6 @@ public:
                 break;
         }
         
-        // Height
         switch (heightSpec_.constraint) {
             case SizeConstraint::Fixed:
                 result.height = heightSpec_.value;
@@ -140,24 +135,18 @@ public:
     
     void layout(const Rect& rect) {
         bounds_ = rect;
-        
-        // Content bounds (excluding padding)
         contentBounds_ = Rect(
             rect.x + style_.padding.left,
             rect.y + style_.padding.top,
             rect.width - style_.padding.horizontal(),
             rect.height - style_.padding.vertical()
         );
-        
         layoutChildren();
     }
     
     virtual void layoutChildren() {}
-    
-    // Rendering
     virtual void render(Renderer& renderer);
     
-    // Event handling
     virtual bool handleMouseMove(const MouseEvent& event) {
         bool wasHovered = hovered_;
         hovered_ = bounds_.contains(event.position);
@@ -165,7 +154,6 @@ public:
         if (hovered_ != wasHovered && onHoverHandler_) {
             onHoverHandler_(hovered_);
         }
-        
         return hovered_;
     }
     
@@ -174,52 +162,36 @@ public:
         
         if (event.pressed && event.button == MouseButton::Left) {
             if (bounds_.contains(event.position)) {
-                if (onClickHandler_) {
-                    onClickHandler_();
-                }
+                if (onClickHandler_) onClickHandler_();
                 return true;
             }
         }
         return false;
     }
     
-    virtual bool handleKeyEvent(const KeyEvent& event) {
-        return false;
-    }
-    
-    virtual bool handleScroll(const ScrollEvent& event) {
-        return false;
-    }
+    virtual bool handleKeyEvent(const KeyEvent& event) { return false; }
+    virtual bool handleScroll(const ScrollEvent& event) { return false; }
     
     void setFocus(bool focus) {
         if (focused_ != focus) {
             focused_ = focus;
-            if (onFocusHandler_) {
-                onFocusHandler_(focused_);
-            }
+            if (onFocusHandler_) onFocusHandler_(focused_);
         }
     }
     
 protected:
-    // Layout specs
     SizeSpec widthSpec_{SizeConstraint::Content};
     SizeSpec heightSpec_{SizeConstraint::Content};
-    
-    // Style
     BoxStyle style_;
-    
-    // Bounds
     Rect bounds_;
     Rect contentBounds_;
     Size measuredSize_;
     
-    // State
     bool visible_ = true;
     bool enabled_ = true;
     bool hovered_ = false;
     bool focused_ = false;
     
-    // Event handlers
     std::function<void()> onClickHandler_;
     std::function<void(bool)> onHoverHandler_;
     std::function<void(bool)> onFocusHandler_;
@@ -245,32 +217,23 @@ public:
     
     void render(Renderer& renderer) override {
         Widget::render(renderer);
-        
         for (auto& child : children_) {
-            if (child->isVisible()) {
-                child->render(renderer);
-            }
+            if (child->isVisible()) child->render(renderer);
         }
     }
     
     bool handleMouseMove(const MouseEvent& event) override {
         Widget::handleMouseMove(event);
-        
         for (auto& child : children_) {
-            if (child->handleMouseMove(event)) {
-                return true;
-            }
+            if (child->handleMouseMove(event)) return true;
         }
         return false;
     }
     
     bool handleMouseButton(const MouseEvent& event) override {
         if (Widget::handleMouseButton(event)) return true;
-        
         for (auto& child : children_) {
-            if (child->handleMouseButton(event)) {
-                return true;
-            }
+            if (child->handleMouseButton(event)) return true;
         }
         return false;
     }

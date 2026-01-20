@@ -4,140 +4,134 @@
 using namespace MetaUI;
 
 int main() {
-    std::cout << "==================================" << std::endl;
-    std::cout << "  MetaUI Framework - Simple Test" << std::endl;
-    std::cout << "==================================" << std::endl;
-    std::cout << std::endl;
+    std::cout << "MetaUI Text & Image Test\n";
+    std::cout << "========================\n\n";
     
     try {
-        std::cout << "[1/4] Creating Wayland application..." << std::endl;
-        Application app("MetaUI Simple Test", 500, 400);
-        std::cout << "      ✓ Application created" << std::endl;
-        
-        std::cout << "[2/4] Building UI layout..." << std::endl;
-        
-        // Get dark theme
+        Application app("MetaUI Test", 600, 500);
         auto theme = Theme::dark();
         
-        // Create root vertical layout
+        // Root layout
         auto root = std::make_shared<Box>(Direction::Vertical);
-   root->padding(30);
-root->spacing(15);
-root->background(theme.background);
+        root->padding(30).spacing(20).background(theme.background);
         
         // Title
-        auto title = std::make_shared<Text>("Welcome to MetaUI!");
-        title->fontSize(28)
-              .color(theme.text)
-              .bold(true);
+        auto title = std::make_shared<Text>("MetaUI Framework");
+        title->fontSize(32).color(theme.text).bold(true);
         root->addChild(title);
         
-        // Subtitle
-        auto subtitle = std::make_shared<Text>("A modern C++ GUI framework for Wayland");
-        subtitle->fontSize(14)
-                .color(theme.textMuted);
+        // Subtitle with UTF-8
+        auto subtitle = std::make_shared<Text>("Modern C++ GUI • Wayland • UTF-8: äöü 中文 🎉");
+        subtitle->fontSize(14).color(theme.textMuted);
         root->addChild(subtitle);
         
-        // Divider
         root->addChild(std::make_shared<Divider>());
+        
+        // Image section
+        auto imgSection = std::make_shared<Box>(Direction::Horizontal);
+        imgSection->spacing(20).align(Alignment::Center);
+        
+        // Placeholder image (will show gray box if file doesn't exist)
+        auto img = std::make_shared<Image>("/tmp/test.bmp");
+        img->width(SizeSpec::fixed(150)).height(SizeSpec::fixed(100));
+        img->preserveAspect(true);
+        imgSection->addChild(img);
+        
+        auto imgDesc = std::make_shared<Box>(Direction::Vertical);
+        imgDesc->spacing(8);
+        
+        auto imgTitle = std::make_shared<Text>("Image Widget");
+        imgTitle->fontSize(18).color(theme.text).bold(true);
+        imgDesc->addChild(imgTitle);
+        
+        auto imgText = std::make_shared<Text>("Supports BMP images.\nLoad from file or memory.");
+        imgText->fontSize(12).color(theme.textMuted);
+        imgDesc->addChild(imgText);
+        
+        imgSection->addChild(imgDesc);
+        root->addChild(imgSection);
+        
         root->addChild(std::make_shared<Spacer>(10));
         
-        // Info text
-        auto info = std::make_shared<Text>("This is a basic test of the MetaUI framework.");
-        info->fontSize(12)
-            .color(theme.text);
-        root->addChild(info);
+        // Text examples
+        auto textSection = std::make_shared<Box>(Direction::Vertical);
+        textSection->spacing(10);
+        
+        auto textTitle = std::make_shared<Text>("Text Rendering Features:");
+        textTitle->fontSize(16).color(theme.primary);
+        textSection->addChild(textTitle);
+        
+        auto sizes = std::make_shared<Box>(Direction::Horizontal);
+        sizes->spacing(15);
+        
+        auto small = std::make_shared<Text>("Small (10)");
+        small->fontSize(10).color(theme.text);
+        sizes->addChild(small);
+        
+        auto medium = std::make_shared<Text>("Medium (14)");
+        medium->fontSize(14).color(theme.text);
+        sizes->addChild(medium);
+        
+        auto large = std::make_shared<Text>("Large (20)");
+        large->fontSize(20).color(theme.text);
+        sizes->addChild(large);
+        
+        textSection->addChild(sizes);
+        
+        // Colored text
+        auto colors = std::make_shared<Box>(Direction::Horizontal);
+        colors->spacing(10);
+        
+        auto red = std::make_shared<Text>("Error");
+        red->fontSize(14).color(theme.error);
+        colors->addChild(red);
+        
+        auto green = std::make_shared<Text>("Success");
+        green->fontSize(14).color(theme.success);
+        colors->addChild(green);
+        
+        auto blue = std::make_shared<Text>("Primary");
+        blue->fontSize(14).color(theme.primary);
+        colors->addChild(blue);
+        
+        textSection->addChild(colors);
+        root->addChild(textSection);
+        
+        root->addChild(std::make_shared<Spacer>(10));
         
         // Button row
         auto buttonRow = std::make_shared<Box>(Direction::Horizontal);
         buttonRow->spacing(10).align(Alignment::Center);
         
-        auto button1 = std::make_shared<Button>("Click Me");
-        button1->background(theme.primary)
-               .onClick([]() {
-                   std::cout << "      → Button 1 clicked!" << std::endl;
-               });
+        auto btn1 = std::make_shared<Button>("Click Me");
+        btn1->background(theme.primary).onClick([]() {
+            std::cout << "Button clicked!\n";
+        });
+        buttonRow->addChild(btn1);
         
-        auto button2 = std::make_shared<Button>("Exit");
-        button2->background(theme.error)
-               .onClick([&app]() {
-                   std::cout << "      → Exit button clicked, quitting..." << std::endl;
-                   app.quit();
-               });
+        auto btn2 = std::make_shared<Button>("Exit");
+        btn2->background(theme.error).onClick([&app]() {
+            app.quit();
+        });
+        buttonRow->addChild(btn2);
         
-        buttonRow->addChild(button1);
-        buttonRow->addChild(button2);
         root->addChild(buttonRow);
         
-        // Spacer
-        root->addChild(std::make_shared<Spacer>(10));
-        
-        // Checkbox
-        auto checkRow = std::make_shared<Box>(Direction::Horizontal);
-        checkRow->spacing(10);
-        
-        auto checkbox = std::make_shared<Checkbox>(false);
-        checkbox->onToggle([](bool checked) {
-            std::cout << "      → Checkbox: " << (checked ? "ON" : "OFF") << std::endl;
-        });
-        
-        auto checkLabel = std::make_shared<Text>("Enable feature");
-        checkLabel->fontSize(12).color(theme.text);
-        
-        checkRow->addChild(checkbox);
-        checkRow->addChild(checkLabel);
-        root->addChild(checkRow);
-        
-        // Slider
-        root->addChild(std::make_shared<Spacer>(5));
-        auto sliderLabel = std::make_shared<Text>("Volume:");
-        sliderLabel->fontSize(12).color(theme.textMuted);
-        root->addChild(sliderLabel);
-        
-        auto slider = std::make_shared<Slider>(0.0f, 100.0f, 50.0f);
-        slider->fillColor(theme.primary)
-              .onChange([](float value) {
-                  std::cout << "      → Slider: " << (int)value << "%" << std::endl;
-              });
-        root->addChild(slider);
-        
         // Progress bar
-        root->addChild(std::make_shared<Spacer>(5));
-        auto progressLabel = std::make_shared<Text>("Progress:");
-        progressLabel->fontSize(12).color(theme.textMuted);
-        root->addChild(progressLabel);
-        
-        auto progress = std::make_shared<ProgressBar>(0.65f);
+        auto progress = std::make_shared<ProgressBar>(0.7f);
         progress->fillColor(theme.success);
         root->addChild(progress);
         
-        std::cout << "      ✓ UI layout created" << std::endl;
-        
-        std::cout << "[3/4] Setting root widget..." << std::endl;
         app.setRoot(root);
-        std::cout << "      ✓ Root widget set" << std::endl;
         
-        std::cout << "[4/4] Starting main loop..." << std::endl;
-        std::cout << std::endl;
-        std::cout << "Application is running!" << std::endl;
-        std::cout << "- Click buttons to see interactions" << std::endl;
-        std::cout << "- Click 'Exit' button or press Ctrl+C to quit" << std::endl;
-        std::cout << std::endl;
-        
+        std::cout << "Running... Press Exit button or Ctrl+C to quit.\n\n";
         app.run();
         
-        std::cout << std::endl;
-        std::cout << "Application exited normally." << std::endl;
+        std::cout << "\nExited normally.\n";
         
     } catch (const std::exception& e) {
-        std::cerr << std::endl;
-        std::cerr << "ERROR: " << e.what() << std::endl;
-        std::cerr << std::endl;
-        std::cerr << "Common issues:" << std::endl;
-        std::cerr << "1. Not running on Wayland (this framework requires Wayland)" << std::endl;
-        std::cerr << "2. Missing widget implementations (see FIXES.md)" << std::endl;
-        std::cerr << "3. Compositor doesn't support wlr-layer-shell" << std::endl;
-        std::cerr << std::endl;
+        std::cerr << "ERROR: " << e.what() << "\n";
+        std::cerr << "\nMake sure you're running on Wayland with wlr-layer-shell support.\n";
         return 1;
     }
     
