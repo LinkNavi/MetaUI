@@ -6,6 +6,7 @@
 #include <vector>
 #include <unordered_map>
 #include <cmath>
+#include <cstdint>
 
 namespace MetaUI {
 
@@ -172,9 +173,9 @@ struct MouseEvent {
 };
 
 struct KeyEvent {
+    bool pressed;
     uint32_t keycode;
     uint32_t keysym;
-    bool pressed;
     uint32_t mods;
     std::string text;  // For text input
 };
@@ -316,7 +317,6 @@ private:
     float elapsed_;
     bool running_;
     
-
     T lerp(const T& a, const T& b, float t) const {
         return a + (b - a) * t;
     }
