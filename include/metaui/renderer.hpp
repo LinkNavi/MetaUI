@@ -256,9 +256,8 @@ private:
     
     void addGlyph(int codepoint) {
         int width, height, xoff, yoff;
-        unsigned char* bitmap = stbtt_GetCodepointBitmap(
-            &font_, 0, scale_, codepoint, &width, &height, &xoff, &yoff);
-        
+      unsigned char* bitmap = stbtt_GetCodepointBitmap(
+    &font_, scale_, scale_, codepoint, &width, &height, &xoff, &yoff);        
         if (!bitmap) {
             // Create empty glyph
             GlyphInfo info{};
