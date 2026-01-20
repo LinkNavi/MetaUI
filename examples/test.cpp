@@ -13,8 +13,7 @@ int main() {
         
         // Root layout
         auto root = std::make_shared<Box>(Direction::Vertical);
-        root->padding(30).spacing(20).background(theme.background);
-        
+        root->spacing(20).padding(30).background(theme.background);        
         // Title
         auto title = std::make_shared<Text>("MetaUI Framework");
         title->fontSize(32).color(theme.text).bold(true);
