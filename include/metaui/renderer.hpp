@@ -1,3 +1,16 @@
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "stb_truetype.h"
+
+#ifndef STB_IMAGE_INCLUDED
+#define STB_IMAGE_INCLUDED
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_NO_STDIO
+#define STBI_ONLY_PNG
+#define STBI_ONLY_JPEG
+#define STBI_ONLY_BMP
+#include "stb_image.h"
+#endif
+
 #pragma once
 
 #include "core.hpp"
@@ -7,8 +20,8 @@
 #include <vector>
 #include <cstring>
 #include <algorithm>
-// stb libraries - define implementation in separate cpp file
-#include "stb_truetype.h"
+
+
 
 #ifndef STB_IMAGE_INCLUDED
 #define STB_IMAGE_INCLUDED
